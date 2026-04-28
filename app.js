@@ -69,10 +69,15 @@ const cameraStatus = document.getElementById("cameraStatus");
 const modelStatus = document.getElementById("modelStatus");
 const scanMessage = document.getElementById("scanMessage");
 
+const openCameraBtn = document.getElementById("openCameraBtn");
+const captureRetakeRow = document.getElementById("captureRetakeRow");
 const captureBtn = document.getElementById("captureBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const retakeBtn = document.getElementById("retakeBtn");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+const errorModal = document.getElementById("errorModal");
+const errorMessage = document.getElementById("errorMessage");
+const errorDismiss = document.getElementById("errorDismiss");
 const useCloudVision = document.getElementById("useCloudVision");
 const visionApiKey = document.getElementById("visionApiKey");
 const saveVisionKeyBtn = document.getElementById("saveVisionKeyBtn");
@@ -140,14 +145,16 @@ async function boot() {
 }
 
 function wireEvents() {
-  bindEvent(captureBtn, "click", onCaptureButtonClick, "captureBtn");
-  bindEvent(analyzeBtn, "click", analyzeMeal, "analyzeBtn");
+  bindEvent(openCameraBtn, "click", onOpenCameraClick, "openCameraBtn");
+  bindEvent(captureBtn, "click", captureFrame, "captureBtn");
+  bindEvent(analyzeBtn, "click", onAnalyzeClick, "analyzeBtn");
   bindEvent(retakeBtn, "click", retakePhoto, "retakeBtn");
   bindEvent(clearHistoryBtn, "click", clearHistory, "clearHistoryBtn");
   bindEvent(saveVisionKeyBtn, "click", saveVisionSettings, "saveVisionKeyBtn");
   bindEvent(useCloudVision, "change", saveVisionSettings, "useCloudVision");
   bindEvent(saveGoalsBtn, "click", saveGoals, "saveGoalsBtn");
   bindEvent(trendMetric, "change", saveTrendsSettings, "trendMetric");
+  bindEvent(errorDismiss, "click", hideErrorModal, "errorDismiss");
 }
 
 function bindEvent(element, eventName, handler, elementName) {
@@ -173,21 +180,45 @@ function initializeControls() {
   weekLabel.textContent = getTrendLabel(trendsSettings.metric);
   updateVisionModeLabel();
 
-  captureBtn.textContent = "Capture";
-  captureBtn.disabled = false;
+  openCameraBtn.textContent = "Open Camera";
+  openCameraBtn.disabled = false;
+  captureRetakeRow.classList.add("hidden");
   retakeBtn.disabled = true;
   analyzeBtn.disabled = true;
 }
 
-async function onCaptureButtonClick() {
-  if (!cameraStream) {
-    captureBtn.disabled = true;
-    captureBtn.textContent = "Starting...";
-    await startCamera();
+async function onOpenCameraClick() {
+  openCameraBtn.disabled = true;
+  openCameraBtn.textContent = "Starting...";
+  await startCamera();
+}
+
+function showCaptureRetake() {
+  openCameraBtn.classList.add("hidden");
+  captureRetakeRow.classList.remove("hidden");
+}
+
+function hideCaptureRetake() {
+  openCameraBtn.classList.remove("hidden");
+  captureRetakeRow.classList.add("hidden");
+}
+
+function showErrorModal(message) {
+  errorMessage.textContent = message;
+  errorModal.classList.remove("hidden");
+}
+
+function hideErrorModal() {
+  errorModal.classList.add("hidden");
+}
+
+function onAnalyzeClick() {
+  if (!lastSnapshot) {
+    showErrorModal("Please capture a meal photo before analyzing.");
     return;
   }
 
-  captureFrame();
+  analyzeMeal();
 }
 
 function updateVisionModeLabel() {
@@ -263,8 +294,8 @@ async function startCamera() {
     cameraEl.style.display = "block";
     snapshotEl.style.display = "none";
 
+    showCaptureRetake();
     captureBtn.disabled = false;
-    captureBtn.textContent = "Capture";
     analyzeBtn.disabled = true;
     retakeBtn.disabled = true;
 
@@ -275,8 +306,8 @@ async function startCamera() {
     scanMessage.textContent = `Unable to access camera. Allow permission and retry${reason}.`;
     cameraStatus.textContent = "Camera blocked";
     cameraStatus.classList.add("warm");
-    captureBtn.textContent = "Capture";
-    captureBtn.disabled = false;
+    openCameraBtn.textContent = "Open Camera";
+    openCameraBtn.disabled = false;
   }
 }
 
@@ -301,7 +332,7 @@ function captureFrame() {
   cameraEl.style.display = "none";
 
   captureBtn.disabled = true;
-  analyzeBtn.disabled = !model;
+  analyzeBtn.disabled = false;
   retakeBtn.disabled = false;
 
   scanMessage.textContent = "Photo captured. Tap Analyze Meal.";
@@ -312,6 +343,7 @@ function retakePhoto() {
     return;
   }
 
+  lastSnapshot = "";
   snapshotEl.style.display = "none";
   cameraEl.style.display = "block";
   captureBtn.disabled = false;
@@ -321,10 +353,6 @@ function retakePhoto() {
 }
 
 async function analyzeMeal() {
-  if (!lastSnapshot) {
-    scanMessage.textContent = "Capture a photo first.";
-    return;
-  }
 
   try {
     analyzeBtn.disabled = true;

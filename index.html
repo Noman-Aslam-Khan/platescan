@@ -40,11 +40,20 @@
           </div>
 
           <div class="actions-stack">
-            <div class="actions-row actions-row-main">
+            <button id="openCameraBtn" class="btn btn-strong">Open Camera</button>
+            <div id="captureRetakeRow" class="actions-row actions-row-main hidden">
               <button id="captureBtn" class="btn btn-strong">Capture</button>
               <button id="retakeBtn" class="btn" disabled>Retake</button>
             </div>
             <button id="analyzeBtn" class="btn analyze-btn" disabled>Analyze Meal</button>
+          </div>
+          <div id="errorModal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+              <h3>Capture Meal First</h3>
+              <p id="errorMessage">Please capture a meal photo before analyzing.</p>
+              <button id="errorDismiss" class="btn">Got it</button>
+            </div>
           </div>
 
           <div class="vision-controls">
