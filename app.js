@@ -77,7 +77,7 @@ const retakeBtn = document.getElementById("retakeBtn");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const errorModal = document.getElementById("errorModal");
 const errorMessage = document.getElementById("errorMessage");
-const errorDismiss = document.getElementById("errorDismiss");
+const retryLoadBtn = document.getElementById("retryLoadBtn");
 const useCloudVision = document.getElementById("useCloudVision");
 const visionApiKey = document.getElementById("visionApiKey");
 const saveVisionKeyBtn = document.getElementById("saveVisionKeyBtn");
@@ -155,6 +155,7 @@ function wireEvents() {
   bindEvent(saveGoalsBtn, "click", saveGoals, "saveGoalsBtn");
   bindEvent(trendMetric, "change", saveTrendsSettings, "trendMetric");
   bindEvent(errorDismiss, "click", hideErrorModal, "errorDismiss");
+  bindEvent(retryLoadBtn, "click", loadModel, "retryLoadBtn");
 }
 
 function bindEvent(element, eventName, handler, elementName) {
@@ -239,6 +240,7 @@ async function loadModel() {
   try {
     modelStatus.textContent = "Loading model...";
     scanMessage.textContent = "Downloading on-device vision model...";
+    retryLoadBtn.classList.add("hidden");
     model = await mobilenet.load();
     modelStatus.textContent = "Model ready";
     modelStatus.classList.remove("warm");
@@ -249,7 +251,19 @@ async function loadModel() {
   } catch (error) {
     console.error(error);
     modelStatus.textContent = "Model failed";
-    scanMessage.textContent = "Could not load vision model. Camera still works, but analyze will stay disabled.";
+    modelStatus.classList.add("warm");
+
+    // Check if Cloud Vision is available as fallback
+    const canUseCloudVision = visionSettings.useCloud && visionSettings.apiKey;
+    if (canUseCloudVision) {
+      analyzeBtn.disabled = false;
+      scanMessage.textContent = "Local AI model failed to load. Using Cloud Vision for analysis.";
+    } else {
+      analyzeBtn.disabled = true;
+      scanMessage.textContent = "Could not load vision model. Enable Cloud Vision to analyze, or try again later.";
+    }
+
+    retryLoadBtn.classList.remove("hidden");
   }
 }
 

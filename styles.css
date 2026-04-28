@@ -283,6 +283,10 @@ body {
   color: var(--ink-soft);
 }
 
+#retryLoadBtn {
+  margin-top: 10px;
+}
+
 .result-card h3 {
   margin: 0;
   font-family: "Fraunces", serif;
