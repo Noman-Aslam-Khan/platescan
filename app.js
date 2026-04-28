@@ -133,11 +133,11 @@ boot();
 
 async function boot() {
   initializeControls();
+  wireEvents();
   renderHistory();
   renderDashboard();
   renderWeeklyTrends();
   await loadModel();
-  wireEvents();
 }
 
 function wireEvents() {
@@ -197,6 +197,13 @@ async function loadModel() {
 }
 
 async function startCamera() {
+  if (!window.isSecureContext) {
+    scanMessage.textContent = "Camera needs HTTPS (or localhost). Open the deployed HTTPS URL.";
+    cameraStatus.textContent = "Insecure context";
+    cameraStatus.classList.add("warm");
+    return;
+  }
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     scanMessage.textContent = "Camera API is not supported in this browser.";
     return;
@@ -207,10 +214,15 @@ async function startCamera() {
       stopCameraStream();
     }
 
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+    } catch {
+      // Fallback for browsers/devices that reject detailed constraints.
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    }
 
     cameraEl.srcObject = cameraStream;
     await cameraEl.play();
@@ -228,7 +240,8 @@ async function startCamera() {
     scanMessage.textContent = "Position meal in frame and tap Capture.";
   } catch (error) {
     console.error(error);
-    scanMessage.textContent = "Unable to access camera. Allow permission and retry.";
+    const reason = error && error.name ? ` (${error.name})` : "";
+    scanMessage.textContent = `Unable to access camera. Allow permission and retry${reason}.`;
     cameraStatus.textContent = "Camera blocked";
     cameraStatus.classList.add("warm");
   }
