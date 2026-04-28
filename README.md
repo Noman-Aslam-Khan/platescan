@@ -40,6 +40,19 @@ Then open:
 
 http://localhost:8080
 
+## Deploy to Cloudflare Pages
+
+1. Push this repo to GitHub.
+2. In Cloudflare Dashboard, go to Workers & Pages -> Create application -> Pages -> Connect to Git.
+3. Select this repository.
+4. Build settings:
+	- Framework preset: None
+	- Build command: (leave empty)
+	- Build output directory: /
+5. Deploy.
+
+This repository includes a root `_headers` file used by Cloudflare Pages for security and cache headers, including camera permissions for the scanner.
+
 ## Google Cloud Vision Setup (Optional)
 
 1. Create a Google Cloud project and enable Vision API.
