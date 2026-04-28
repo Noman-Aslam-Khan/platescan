@@ -140,14 +140,23 @@ async function boot() {
 }
 
 function wireEvents() {
-  captureBtn.addEventListener("click", onCaptureButtonClick);
-  analyzeBtn.addEventListener("click", analyzeMeal);
-  retakeBtn.addEventListener("click", retakePhoto);
-  clearHistoryBtn.addEventListener("click", clearHistory);
-  saveVisionKeyBtn.addEventListener("click", saveVisionSettings);
-  useCloudVision.addEventListener("change", saveVisionSettings);
-  saveGoalsBtn.addEventListener("click", saveGoals);
-  trendMetric.addEventListener("change", saveTrendsSettings);
+  bindEvent(captureBtn, "click", onCaptureButtonClick, "captureBtn");
+  bindEvent(analyzeBtn, "click", analyzeMeal, "analyzeBtn");
+  bindEvent(retakeBtn, "click", retakePhoto, "retakeBtn");
+  bindEvent(clearHistoryBtn, "click", clearHistory, "clearHistoryBtn");
+  bindEvent(saveVisionKeyBtn, "click", saveVisionSettings, "saveVisionKeyBtn");
+  bindEvent(useCloudVision, "change", saveVisionSettings, "useCloudVision");
+  bindEvent(saveGoalsBtn, "click", saveGoals, "saveGoalsBtn");
+  bindEvent(trendMetric, "change", saveTrendsSettings, "trendMetric");
+}
+
+function bindEvent(element, eventName, handler, elementName) {
+  if (!element) {
+    console.warn(`Missing element: ${elementName}`);
+    return;
+  }
+
+  element.addEventListener(eventName, handler);
 }
 
 function initializeControls() {

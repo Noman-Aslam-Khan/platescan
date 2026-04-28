@@ -51,7 +51,7 @@ http://localhost:8080
 	- Build output directory: /
 5. Deploy.
 
-This repository includes a root `_headers` file used by Cloudflare Pages for security and cache headers, including camera permissions for the scanner.
+This repository includes a root `_headers` file used by Cloudflare Pages for security and cache headers, including camera permissions for the scanner. App and stylesheet files are set to revalidate to avoid stale-client issues after updates.
 
 ## Google Cloud Vision Setup (Optional)
 
