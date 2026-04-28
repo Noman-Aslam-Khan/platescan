@@ -38,11 +38,12 @@
             <canvas id="captureCanvas" width="640" height="640"></canvas>
           </div>
 
-          <div class="actions-row">
-            <button id="startCameraBtn" class="btn btn-strong">Start Camera</button>
-            <button id="captureBtn" class="btn" disabled>Capture</button>
-            <button id="analyzeBtn" class="btn" disabled>Analyze Meal</button>
-            <button id="retakeBtn" class="btn" disabled>Retake</button>
+          <div class="actions-stack">
+            <div class="actions-row actions-row-main">
+              <button id="captureBtn" class="btn btn-strong">Capture</button>
+              <button id="retakeBtn" class="btn" disabled>Retake</button>
+            </div>
+            <button id="analyzeBtn" class="btn analyze-btn" disabled>Analyze Meal</button>
           </div>
 
           <div class="vision-controls">
@@ -65,7 +66,7 @@
             </p>
           </div>
 
-          <p id="scanMessage" class="scan-message">Load model to start scanning.</p>
+          <p id="scanMessage" class="scan-message">Tap Capture to start camera.</p>
         </article>
 
         <article class="panel results-panel">

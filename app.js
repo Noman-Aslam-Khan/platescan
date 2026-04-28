@@ -69,7 +69,6 @@ const cameraStatus = document.getElementById("cameraStatus");
 const modelStatus = document.getElementById("modelStatus");
 const scanMessage = document.getElementById("scanMessage");
 
-const startCameraBtn = document.getElementById("startCameraBtn");
 const captureBtn = document.getElementById("captureBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const retakeBtn = document.getElementById("retakeBtn");
@@ -137,12 +136,11 @@ async function boot() {
   renderHistory();
   renderDashboard();
   renderWeeklyTrends();
-  await loadModel();
+  loadModel();
 }
 
 function wireEvents() {
-  startCameraBtn.addEventListener("click", startCamera);
-  captureBtn.addEventListener("click", captureFrame);
+  captureBtn.addEventListener("click", onCaptureButtonClick);
   analyzeBtn.addEventListener("click", analyzeMeal);
   retakeBtn.addEventListener("click", retakePhoto);
   clearHistoryBtn.addEventListener("click", clearHistory);
@@ -165,6 +163,22 @@ function initializeControls() {
   trendMetric.value = trendsSettings.metric;
   weekLabel.textContent = getTrendLabel(trendsSettings.metric);
   updateVisionModeLabel();
+
+  captureBtn.textContent = "Capture";
+  captureBtn.disabled = false;
+  retakeBtn.disabled = true;
+  analyzeBtn.disabled = true;
+}
+
+async function onCaptureButtonClick() {
+  if (!cameraStream) {
+    captureBtn.disabled = true;
+    captureBtn.textContent = "Starting...";
+    await startCamera();
+    return;
+  }
+
+  captureFrame();
 }
 
 function updateVisionModeLabel() {
@@ -188,11 +202,14 @@ async function loadModel() {
     model = await mobilenet.load();
     modelStatus.textContent = "Model ready";
     modelStatus.classList.remove("warm");
-    scanMessage.textContent = "Start camera and scan your meal.";
+    if (lastSnapshot) {
+      analyzeBtn.disabled = false;
+    }
+    scanMessage.textContent = cameraStream ? "Tap Capture to take a photo." : "Tap Capture to start camera.";
   } catch (error) {
     console.error(error);
     modelStatus.textContent = "Model failed";
-    scanMessage.textContent = "Could not load vision model. Check internet and refresh.";
+    scanMessage.textContent = "Could not load vision model. Camera still works, but analyze will stay disabled.";
   }
 }
 
@@ -201,11 +218,15 @@ async function startCamera() {
     scanMessage.textContent = "Camera needs HTTPS (or localhost). Open the deployed HTTPS URL.";
     cameraStatus.textContent = "Insecure context";
     cameraStatus.classList.add("warm");
+    captureBtn.textContent = "Capture";
+    captureBtn.disabled = false;
     return;
   }
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     scanMessage.textContent = "Camera API is not supported in this browser.";
+    captureBtn.textContent = "Capture";
+    captureBtn.disabled = false;
     return;
   }
 
@@ -234,6 +255,7 @@ async function startCamera() {
     snapshotEl.style.display = "none";
 
     captureBtn.disabled = false;
+    captureBtn.textContent = "Capture";
     analyzeBtn.disabled = true;
     retakeBtn.disabled = true;
 
@@ -244,6 +266,8 @@ async function startCamera() {
     scanMessage.textContent = `Unable to access camera. Allow permission and retry${reason}.`;
     cameraStatus.textContent = "Camera blocked";
     cameraStatus.classList.add("warm");
+    captureBtn.textContent = "Capture";
+    captureBtn.disabled = false;
   }
 }
 
@@ -267,6 +291,7 @@ function captureFrame() {
   snapshotEl.style.display = "block";
   cameraEl.style.display = "none";
 
+  captureBtn.disabled = true;
   analyzeBtn.disabled = !model;
   retakeBtn.disabled = false;
 
@@ -280,6 +305,7 @@ function retakePhoto() {
 
   snapshotEl.style.display = "none";
   cameraEl.style.display = "block";
+  captureBtn.disabled = false;
   analyzeBtn.disabled = true;
   retakeBtn.disabled = true;
   scanMessage.textContent = "Retake ready. Capture again when framed.";

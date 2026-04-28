@@ -140,6 +140,26 @@ body {
   gap: 10px;
 }
 
+.actions-stack {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.actions-row-main {
+  margin-top: 0;
+  justify-content: center;
+}
+
+.actions-row-main .btn {
+  min-width: 132px;
+}
+
+.analyze-btn {
+  justify-self: center;
+  width: min(280px, 100%);
+}
+
 .vision-controls {
   margin-top: 12px;
   border: 1px solid var(--line);
